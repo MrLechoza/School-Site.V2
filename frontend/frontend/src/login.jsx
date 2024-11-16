@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Layout from "./components/layout";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -13,7 +12,6 @@ function Login() {
   const handleLogin = (e) => {
     e.preventDefault();
     setLoading(true)
-
   
     fetch("http://127.0.0.1:8000/login/", {
       method: "POST",
@@ -21,8 +19,8 @@ function Login() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        email,
-        password,
+        email: email,
+        password: password,
       }),
     })
       .then((response) => {
@@ -36,10 +34,16 @@ function Login() {
       })
       .then((data) => {
         console.log('Respuesta del login:', data)
+        localStorage.setItem("token", data.token);
+        console.log('Roles:', data.is_student, data.is_teacher, data.is_staff);
         if (data.token) {
   
           localStorage.setItem("token", data.token);
           localStorage.setItem("user", data.user); 
+
+          localStorage.setItem("is_student", data.is_student ? "true" : "false");
+          localStorage.setItem("is_teacher", data.is_teacher ? "true" : "false");
+          localStorage.setItem("is_staff", data.is_staff ? "true" : "false");
 
           let role =  '' 
           if (data.is_teacher) {
@@ -51,7 +55,7 @@ function Login() {
           }
           localStorage.setItem("role", role);
           
-          const loginEvent = new CustomEvent('login', { detail: {user : data.user}})
+          const loginEvent = new CustomEvent('login', { detail: {user : data.user, data: data}})
           window.dispatchEvent(loginEvent)
 
           console.log(role)

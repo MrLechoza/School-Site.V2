@@ -10,7 +10,11 @@ from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-
+from django.contrib.auth import logout as django_logout
+from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.parsers import MultiPartParser, FormParser
+from django.http import FileResponse
+from django.shortcuts import get_object_or_404
 
 @api_view(['OPTIONS'])
 def register_options(request):
@@ -25,6 +29,7 @@ def response_after_save(request, obj_id, token_key):
 def register(request):
     print(request.data)
     data = dict(request.data)
+    
 
     if data['is_student']:
         register_student(data)
@@ -33,10 +38,14 @@ def register(request):
     else:
         serializer = UserSerializer(data=data)
         if serializer.is_valid():
-            serializer.save()
-            user = UserProfile.objects.get(email=data['email'])
+            user = serializer.save()
             user.set_password(data['password'])
             user.save()
+            
+            if request.user.is_authenticated:
+                user.created_by = request.user
+                user.save()
+            
             token = Token.objects.create(user=user)
 
             return Response({'token': token.key, 'user': serializer.data})
@@ -88,6 +97,16 @@ def login(request):
             return Response({'error': 'Las credenciales son incorrectas...'}, status=status.HTTP_401_UNAUTHORIZED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated]) 
+def logout(request):
+    try:
+        token = Token.objects.get(user=request.user)
+        token.delete()  
+        django_logout(request)
+        return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
+    except Token.DoesNotExist:
+        return Response({'error': 'Token not found'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 def register_message(request):
@@ -141,7 +160,7 @@ def agregar_materia(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+"""
 @api_view(['GET', 'POST'])
 def asignacion_list(request):
     if request.method == 'GET':
@@ -179,6 +198,8 @@ def asignacion_detail(request, pk):
     elif request.method == 'DELETE':
         asignacion.delete()
         return Response(status=204)
+        
+        """
     
 @api_view(['GET', 'POST'])
 def MateriaView (request):
@@ -210,12 +231,6 @@ def update_profile(request):
         return Response(serializer.data)
     return Response(serializer.error , status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
-def logoutView(request):
-    logout(request)
-    return Response({'message': 'Sesion cerrada'})
-  
-  
   
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -239,12 +254,13 @@ def asignar_materias_estudiante(request, estudiante_id):
         estudiante = UserProfile.objects.get(id=estudiante_id, is_student=True)
         materias_ids = request.data.get('materias')
         materias = Materias.objects.filter(id__in=materias_ids)
-        estudiante.materias.set(materias)
+        estudiante.materias.add(*materias)
         estudiante.save()
-        return Response({'message' : 'Materias asignadas correctamente'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Materias asignadas correctamente'}, status=status.HTTP_200_OK)
     except UserProfile.DoesNotExist:
-        return Response({ 'error' : 'Estudiante no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'Estudiante no encontrado'}, status=status.HTTP_404_NOT_FOUND)
     
+
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
 def asignar_materias_profesor(request, profesor_id):
@@ -252,24 +268,24 @@ def asignar_materias_profesor(request, profesor_id):
         profesor = UserProfile.objects.get(id=profesor_id, is_teacher=True)
         materias_ids = request.data.get('materias')
         materias = Materias.objects.filter(id__in=materias_ids)
-        profesor.materias.set(materias)
+        profesor.materias.add(*materias)
         profesor.save()
         return Response({'message': 'Materias asignadas correctamente'}, status=status.HTTP_200_OK)
     except UserProfile.DoesNotExist:
-        return Response ({'error': 'Profesor no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'Profesor no encontrado'}, status=status.HTTP_404_NOT_FOUND)
     
     
 @api_view(['GET'])
-@permission_classes ([IsAuthenticated])
+@permission_classes([IsAuthenticated])
 def obtener_materias_profesor(request):
     if request.user.is_teacher:
-        materias = Materias.objects.filter(profesor=request.user)
+        materias = request.user.materias.all()
         serializer = MateriaSerializer(materias, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     else:
-        return Response({'error' : 'No tienes permiso para ver estas materias'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'No tienes permiso para ver estas materias'}, status=status.HTTP_403_FORBIDDEN)
     
-    
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def obtener_materias_estudiante(request):
@@ -278,6 +294,153 @@ def obtener_materias_estudiante(request):
         serializer = MateriaSerializer(materias, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     else:
-        return Response({'error' : 'No tienes permiso para ver estas materias'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'error': 'No tienes permiso para ver estas materias'}, status=status.HTTP_403_FORBIDDEN)
     
     
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def eliminar_materias_estudiante(request, usuario_id):
+    try:
+        estudiante = UserProfile.objects.get(id=usuario_id, is_student=True)
+        materias_ids = request.data.get('materias')
+        materias = Materias.objects.filter(id__in=materias_ids)
+        estudiante.materias.remove(*materias)
+        return Response({'message': 'Materias eliminadas correctamente del estudiante'}, status=status.HTTP_200_OK)
+    except UserProfile.DoesNotExist:
+        return Response({'error': 'Estudiante no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def eliminar_materias_profesor(request, usuario_id):
+    try:
+        profesor = UserProfile.objects.get(id=usuario_id, is_teacher=True)
+        materias_ids = request.data.get('materias')
+        materias = Materias.objects.filter(id__in=materias_ids)
+        profesor.materias.remove(*materias)
+        profesor.save()
+        return Response({'message': 'Materias eliminadas correctamente del profesor'}, status=status.HTTP_200_OK)
+    except UserProfile.DoesNotExist:
+        return Response({'error' : 'Profesor no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def listar_estudiantes_con_materias(request):
+    estudiantes = UserProfile.objects.filter(is_student=True).prefetch_related('materias')
+    data = [
+        {
+            'id' : estudiante.id,
+            'nombre' : estudiante.username,
+            'materias' : MateriaSerializer(estudiante.materias.all(), many=True).data
+        }
+        for estudiante in estudiantes
+    ]
+    return Response(data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def listar_profesores_con_materias(request):
+    profesores = UserProfile.objects.filter(is_teacher=True).prefetch_related('materias')
+    data = [
+        {
+            'id' : profesor.id,
+            'nombre': profesor.username,
+            'materias': MateriaSerializer(profesor.materias.all(), many=True).data
+        }
+        for profesor in profesores
+    ]
+    return Response(data, status=status.HTTP_200_OK)
+
+#    VISTAS PARA LAS ASIGNACIONES (TAREAS)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@permission_classes([MultiPartParser, FormParser])
+def crear_asignacion(request):
+    if request.user.is_teacher:
+        serializer = AsignacionSerializer(data=request.data, context={'request': request}) 
+        if serializer.is_valid():
+            try:
+                materia = Materias.objects.get(id=request.data.get('materia_id'))
+                asignacion = serializer.save(materia=materia) 
+                estudiantes = UserProfile.objects.filter(materias=materia, is_student=True)
+                asignacion.estudiantes.set(estudiantes)
+                return Response(AsignacionSerializer(asignacion).data, status=status.HTTP_201_CREATED)
+            except Materias.DoesNotExist:
+                return Response({'error': 'Materia no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                return Response({'error': f'Error al guardar la asignación: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            print(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    return Response({'error': 'No tienes permiso para crear asignaciones'}, status=status.HTTP_403_FORBIDDEN)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def asignaciones_estudiante(request, materia_id):
+    if request.user.is_student:
+        try:
+            print(f"Buscando asignaciones para materia_id: {materia_id}")
+            asignaciones = Asignacion.objects.filter(materia_id=materia_id, estudiantes__id=request.user.id)
+            print(f"Asignaciones encontradas: {asignaciones}")
+            serializer = AsignacionSerializer(asignaciones, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response({'error': 'No se encontraron asignaciones'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': f'Error al obtener asignaciones: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return Response({'error': 'No tienes permiso para ver estas asignaciones'}, status=status.HTTP_403_FORBIDDEN)
+
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def asignaciones_profesor(request, materia_id):
+    if request.user.is_teacher:
+        try:
+           
+            asignaciones = Asignacion.objects.filter(profesor=request.user, materia_id=materia_id)
+            serializer = AsignacionSerializer(asignaciones, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': f'Error al obtener asignaciones: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return Response({'error': 'No tienes permiso para ver estas asignaciones'}, status=status.HTTP_403_FORBIDDEN)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def eliminar_asignacion(request, asignacion_id):
+    try: 
+        asignacion= Asignacion.objects.get(id=asignacion_id, profesor=request.user )
+        asignacion.delete()
+        return Response({'message':  'Asignacion eliminada exitosamente'}, status=status.HTTP_204_NO_CONTENT)
+    except Asignacion.DoesNotExist:
+        return Response({ 'error' : 'Asignacion no encontrada o no tienes permiso para eliminarla'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': f'Error al eliminar asignacion: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+# USUARIO 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def obtener_usuario_actual(request):
+    user = request.user
+    return Response({
+        'id': user.id,
+        'username': user.username,
+        'is_teacher': user.is_teacher,
+        'is_student': user.is_student,
+    })
+    
+    
+    
+def download_file(request, asignacion_id):
+    asignacion = get_object_or_404(Asignacion, id=asignacion_id)
+    if not asignacion.archivo:
+        return HttpResponse("No hay archivo disponible para descargar.", status=404)
+    response = FileResponse(open(asignacion.archivo.path, 'rb'))
+    response['Content-Disposition'] = f'attachment; filename="{asignacion.archivo.name}"'
+    return response

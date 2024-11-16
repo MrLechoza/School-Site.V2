@@ -9,12 +9,12 @@ function HomePageTeacher() {
 
   return (
     <>
-      <div className="absolute flex w-[70%] h-auto shadow-md bg-[#ffffff]">
+      <div className="absolute flex w-[1050px] h-auto shadow-md bg-[#ffffff]">
         <div className="p-5">
           <h1 className="relative font-bold text-gray-500 mb-3">Categorias</h1>
-
-          <div className="flex  justify-items-center gap-3">
-            <div className="relative  w-[65px] flex" alt="boton Agregar">
+          
+          <div className="flex gap-3">
+            <div className="relative  w-[65px] flex" alt="boton Registrar">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -86,14 +86,12 @@ function HomePageTeacher() {
                 <span className="mx-auto mt-3">Asignaciones</span>
               </button>
               
-                
-              
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex w-[72%] h-auto shadow-md mt-36 bg-[#ffffff]">
+      <div className="flex w-[1050px] h-auto shadow-md mt-36 bg-[#ffffff]">
         { vista.showRegisterStudent && <RegisterStudent />}
         { vista.showAsignaciones && <Assignments /> }
         { vista.showMaterias && <Materia />}

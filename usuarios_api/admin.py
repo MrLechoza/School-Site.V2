@@ -7,12 +7,18 @@ from django import forms
 from rest_framework.authtoken.models import Token
 from django.shortcuts import redirect
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+
 
 class UserForm(forms.ModelForm):
+    materias = forms.ModelMultipleChoiceField(
+        queryset=Materias.objects.all(),
+        required = False,
+        widget=forms.CheckboxSelectMultiple
+    )
+    
     class Meta:
         model = UserProfile
-        fields = ('username', 'email', 'password' , 'is_student', 'is_teacher', 'materias')
+        fields = ['username', 'email', 'password' , 'is_student', 'is_teacher', 'materias']
 
 class UserProfileAdmin (admin.ModelAdmin):
     form = UserForm
@@ -26,18 +32,15 @@ class UserProfileAdmin (admin.ModelAdmin):
         
     delete_selected.short_description = "Eliminar Seleccionados"
     
-    def get_form(self, request, obj=None, **kwargs):
-        if obj and obj.is_teacher:
-            self.form = UserForm
-            self.form.fields['materias'] = forms.ModelMultipleChoiceField(queryset=Materias.objects.all())
-        return super(UserProfileAdmin, self).get_form(request, obj, **kwargs)
                     
     def save_model(self, request, obj, form, change):
         if  'is_student' in form.cleaned_data:
             obj.is_student = form.cleaned_data['is_student']
         if  'is_teacher' in form.cleaned_data:
             obj.is_teacher = form.cleaned_data['is_teacher']
+            
         obj.save()
+        
         token, created = Token.objects.get_or_create(user=obj)
         obj.set_password(token.key)
         obj.save()

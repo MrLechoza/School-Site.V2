@@ -48,25 +48,37 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError('Las credenciales son incorrectas...')
 
 class MateriaSerializer(serializers.ModelSerializer):
-    nivel_escolar = serializers.CharField()  # Acepta un string
+    nivel_escolar = serializers.CharField()  
 
     class Meta:
         model = Materias
         fields = ['id', 'nombre', 'descripcion', 'nivel_escolar']
 
     def create(self, validated_data):
-        # Extrae el nombre del nivel escolar
+    
         nivel_escolar_nombre = validated_data.pop('nivel_escolar')
-        
-        # Obtiene o crea el nivel escolar
         nivel_escolar, created = NivelEscolar.objects.get_or_create(nombre=nivel_escolar_nombre)
-
-        # Crea la materia con el objeto nivel_escolar
         materia = Materias.objects.create(nivel_escolar=nivel_escolar, **validated_data)
         return materia
 
 
 class AsignacionSerializer(serializers.ModelSerializer):
+    estudiantes = UserSerializer(many=True, read_only=True)
+    profesor = serializers.StringRelatedField()
+    archivo_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Asignacion
-        fields = ['id',  'nombre', 'description', 'fechaLimite']
+        fields = ['id', 'materia_id', 'titulo', 'descripcion', 'fechaLimite', 'estudiantes', 'profesor', 'archivo', 'archivo_url']
+        
+    def get_archivo_url(self, obj):
+        return obj.archivo.url if obj.archivo else None
+    
+    def get_archivoNombre(self, obj):
+        return obj.archivo.name if obj.archivo else None
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        profesor = request.user
+        asignacion = Asignacion.objects.create(profesor=profesor, **validated_data)
+        return asignacion

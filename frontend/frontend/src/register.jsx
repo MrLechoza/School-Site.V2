@@ -25,38 +25,38 @@ function Register() {
   const [role, setRole] = useState("student");
   const [successMessage, setSuccessMenssage] = useState("");
   const navigate = useNavigate();
-  const [errorEmail, setErrorEmail] = useState(false)
-  const [errorUsername, setErrorUsername] = useState(false)
-  const [errorPasword, setErrorPasword] = useState(false)
+  const [errorEmail, setErrorEmail] = useState(false);
+  const [errorUsername, setErrorUsername] = useState(false);
+  const [errorPasword, setErrorPasword] = useState(false);
 
   const handleRegister = (e) => {
     e.preventDefault();
 
-    let isValid = true
-    
+    let isValid = true;
+
     if (!email) {
-      setErrorEmail(true)
-      isValid(false)
+      setErrorEmail(true);
+      isValid = false;
     } else {
-      setErrorEmail(false)
+      setErrorEmail(false);
     }
 
     if (!username) {
-      setErrorUsername(true)
-      isValid(false)
+      setErrorUsername(true);
+      isValid = false;
     } else {
-      setErrorUsername(false)
-    }
-    
-    if (!password) {
-      setErrorPasword(true)
-      isValid(false)
-    } else {
-      setErrorPasword(false)
+      setErrorUsername(false);
     }
 
-    if (!isValid){
-      return
+    if (!password) {
+      setErrorPasword(true);
+      isValid = false;
+    } else {
+      setErrorPasword(false);
+    }
+
+    if (!isValid) {
+      return;
     }
 
     fetch("http://127.0.0.1:8000/register/", {
@@ -79,18 +79,22 @@ function Register() {
         return response.json();
       })
       .then((data) => {
+        
+
+        localStorage.getItem('token', data.token)
+        localStorage.getItem('username' , data.username)
+
         if (role == 'student') {
           navigate('/register/message/', {relative: true})
         } else {
           setSuccessMenssage('Usuario registrado exitosamente')
-          navigate('/register/teacher-page/', {relative: true})
+          navigate('/registro-exitoso', {relative: true})
         }
       })
       .catch((error) => {
-        console.log('Error a registrar el usuario: ' , error)
-      })
+        console.log("Error a registrar el usuario: ", error);
+      });
   };
-
 
   return (
     <div className="max-w-md mx-auto mt-10">
@@ -110,7 +114,9 @@ function Register() {
             placeholder="Correo electrónico"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className= {`w-full p-3  border ${errorEmail ? `border-red-500`: `border-gray-300`} rounded`}
+            className={`w-full p-3  border ${
+              errorEmail ? `border-red-500` : `border-gray-300`
+            } rounded`}
           />
 
           <input
@@ -118,14 +124,18 @@ function Register() {
             placeholder="Nombre"
             value={username}
             onChange={(e) => setName(e.target.value)}
-            className={`w-full p-3 border ${errorUsername ? `border-red-500`: `border-gray-300`} rounded mt-3`}
+            className={`w-full p-3 border ${
+              errorUsername ? `border-red-500` : `border-gray-300`
+            } rounded mt-3`}
           />
           <input
             type="password"
             placeholder="Contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className={`w-full p-3 border ${errorPasword ? `border-red-500` : `border-gray-300`} rounded mt-3`}
+            className={`w-full p-3 border ${
+              errorPasword ? `border-red-500` : `border-gray-300`
+            } rounded mt-3`}
           />
           <select
             className="rounded mt-3 border p-2"
