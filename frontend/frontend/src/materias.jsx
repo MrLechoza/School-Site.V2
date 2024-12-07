@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
+import MostrarEstudiantes from "./mostrar-usuariosEs";
 
 function Materia() {
   const [materias, setMaterias] = useState([]);
   const [error, setError] = useState(null);
+  const [materiaId, setMateriaId] = useState(null)
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -26,11 +28,16 @@ function Materia() {
       .catch((error) => console.log(("Error", error)));
   }, []);
 
+  const handleMateriaSeleccionada = (id) => {
+    console.log("Materia seleccionada con ID:", id);
+    setMateriaId(id)
+  };
+
   return (
     <div>
       <div className="flex flex-wrap justify-center m-10">
         {materias.map((materia) => (
-          <div className="border-2 border-gray-300 rounded-md w-52 h-52 m-2 p-4 flex flex-col items-center justify-center   ">
+          <div key={materia.id} className="border-2 border-gray-300 rounded-md w-52 h-52 m-2 p-4 flex flex-col items-center justify-center   ">
             
             <div className="rounded-full">
               <svg
@@ -73,6 +80,7 @@ function Materia() {
           </div>
         ))}
       </div>
+      {materiaId && <MostrarEstudiantes materiaId={materiaId} />}
     </div>
   );
 }

@@ -4,6 +4,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from django import forms
 from django.conf import settings
 from django.utils import timezone
+from django.core.validators import RegexValidator
 
 
 class UserManager(BaseUserManager):
@@ -44,19 +45,11 @@ class Materias(models.Model):
 
 
 class Profesor(models.Model):
-    # el user se regiere al usuario que es profesor
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profesor_profile')
     materias = models.ManyToManyField(
         Materias, related_name='profesor_materias')
-
-
-class Estudiante(models.Model):
-    # se refiere al usuario que es un profesor
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='estudiante_profile')
-    materias = models.ManyToManyField(
-        Materias, related_name='estudiante_materias')
 
 
 class UserProfile(AbstractBaseUser, PermissionsMixin):
@@ -66,19 +59,18 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     is_teacher = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
-        related_name='created_users', null=True, blank=True
-    )
-    updated_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
-        related_name='updated_users', null=True, blank=True
+    phone = models.CharField(
+        max_length=15,
+        blank=True,
+        null=True,
+        validators=[RegexValidator(
+            regex=r'^\+?1?\d{9,15}$', message="El número de teléfono debe tener entre 9 y 15 dígitos.")]
     )
     materias = models.ManyToManyField(Materias, blank=True)
     profesor = models.OneToOneField(
         Profesor, on_delete=models.CASCADE, null=True, blank=True)
     estudiante = models.OneToOneField(
-        Estudiante, on_delete=models.CASCADE, null=True, blank=True)
+        'Estudiante', on_delete=models.CASCADE, null=True, blank=True, related_name='perfil_estudiante')
     avatar = models.ImageField(upload_to='avatar', blank=True, null=True)
 
     objects = UserManager()
@@ -91,25 +83,38 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
 
     def is_student_or_teacher(self):
         return self.is_student or self.is_teacher
+    
+class Estudiante(models.Model):
+    user_profile = models.OneToOneField(
+        UserProfile, on_delete=models.CASCADE, related_name='estudiante_profile')
+    username = models.CharField(UserProfile,max_length=100, unique=True, null=True, blank=True)
+    materias = models.ManyToManyField(Materias, blank=True)
+
+    def __str__(self):
+        return f"{self.user_profile.username}"
 
 
 class Asignacion(models.Model):
     titulo = models.CharField(max_length=100, default="titulo")
     descripcion = models.TextField(default='')
-    materia = models.ForeignKey(Materias, on_delete=models.CASCADE, related_name="asignaciones", null=True, blank=True)
-    profesor = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name="asignaciones_profesor", limit_choices_to={'is_teacher': True}, default=1)  
-    estudiantes = models.ManyToManyField(UserProfile, related_name="asignaciones_estudiante", limit_choices_to={'is_student': True})
+    materia = models.ForeignKey(
+        Materias, on_delete=models.CASCADE, related_name="asignaciones", null=True, blank=True)
+    profesor = models.ForeignKey(UserProfile, on_delete=models.CASCADE,
+                                 related_name="asignaciones_profesor", limit_choices_to={'is_teacher': True}, default=1)
+    estudiantes = models.ManyToManyField(
+        UserProfile, related_name="asignaciones_estudiante", limit_choices_to={'is_student': True})
     fechaLimite = models.DateField()
     archivo = models.FileField(upload_to='uploads/', null=True, blank=True)
-    
+
     def __str__(self):
         return self.titulo
+
 
 class Tarea(models.Model):
     asignacion = models.ForeignKey(Asignacion, on_delete=models.CASCADE)
     estudiante = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    
+
     archivo = models.FileField(upload_to='tareas/')
 
 
@@ -117,3 +122,45 @@ class TareaForm(forms.ModelForm):
     class Meta:
         model = Tarea
         fields = ('archivo', 'asignacion')
+
+
+class RespuestaAsig(models.Model):
+    estudiante = models.ForeignKey(Estudiante, on_delete=models.CASCADE)
+    asignacion = models.ForeignKey(Asignacion, on_delete=models.CASCADE)
+    contenido = models.TextField()
+    fechaEnvio = models.DateTimeField(auto_now_add=True)
+
+
+class Entrega(models.Model):
+    asignacion = models.ForeignKey(
+        Asignacion,
+        on_delete=models.CASCADE,
+        related_name='entregas'
+    )
+    estudiante = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    comentario = models.TextField(blank=True, null=True)
+    archivo = models.FileField(upload_to='entregas/', blank=True, null=True)
+    fecha_entrega = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Entrega"
+        verbose_name_plural = "Entregas"
+
+    def __str__(self):
+        return f"Entrega de {self.estudiante.username} para {self.asignacion.titulo}"
+
+
+class Nota(models.Model):
+    entrega = models.OneToOneField(Entrega, on_delete=models.CASCADE, null=True, blank=True)
+    user_profile = models.ForeignKey(
+        UserProfile, on_delete=models.CASCADE, related_name='notas'
+    )
+    comentarios = models.TextField(blank=True, null=True)
+    asignacion = models.ForeignKey(
+        Asignacion, on_delete=models.CASCADE, related_name='notas', blank=True, null=True
+    )
+    calificacion = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    fecha_asignacion = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    def __str__(self):
+        return f"Nota de {self.user_profile.username} para {self.asignacion.nombre}: {self.calificacion}"

@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import UploadComponent from "./fileupload";
+import getFileIcon from "./obtenerIcono";
+import VerEntregas from "./ver-entregas";
+import { Link } from "react-router-dom";
 
 function Assignments() {
   const [asignaciones, setAsignaciones] = useState([]);
@@ -103,10 +106,12 @@ function Assignments() {
     formData.append("descripcion", newAsignaciones.descripcion);
     formData.append("fechaLimite", fechaLimite.toISOString().split("T")[0]);
     formData.append("materia_id", newAsignaciones.materia_id);
-    formData.append("profesor_nombre", newAsignaciones.profesor_nombre)
+    formData.append("profesor_nombre", newAsignaciones.profesor_nombre);
 
-    if (newAsignaciones.archivo) {
-      formData.append("archivo", newAsignaciones.archivo);
+    if (newAsignaciones.archivo && newAsignaciones.archivo.length > 0) {
+      newAsignaciones.archivo.forEach((file) => {
+        formData.append("archivo", file);
+      });
     }
 
     console.log("Datos a enviar: ", formData);
@@ -163,6 +168,9 @@ function Assignments() {
       });
   };
 
+
+  
+
   const handleDelete = (id) => {
     const token = localStorage.getItem("token");
 
@@ -184,7 +192,6 @@ function Assignments() {
       .catch((error) => console.error(error));
   };
 
-
   const handleFileChange = (file) => {
     setNewAsignaciones((prev) => ({
       ...prev,
@@ -192,10 +199,8 @@ function Assignments() {
     }));
   };
 
-
-
   return (
-    <div className="p-4 w-10/12 mx-auto bg-white rounded-lg shadow-md">
+    <div className="p-4 w-10/12 mx-auto bg-white rounded-lg shadow-md m-10">
       <h1 className="font-bold text-xl text-center mb-4">Asignaciones</h1>
 
       <form onSubmit={handleSubmit}>
@@ -250,10 +255,10 @@ function Assignments() {
           ></textarea>
         </div>
 
-       <div>
-        <h1>Subir Archivo</h1>
-        <UploadComponent onFileChange={handleFileChange} />
-       </div>
+        <div className="mb-4">
+          <h1 className="block font-medium mb-1">Subir Archivo:</h1>
+          <UploadComponent onFileChange={handleFileChange} />
+        </div>
 
         <div className="mb-4">
           <label className="block font-medium">Fecha Límite:</label>
@@ -265,7 +270,7 @@ function Assignments() {
           />
         </div>
 
-        <button className="w-full font-bold bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+        <button className="w-full font-bold   bg-black text-white p-2 rounded  hover:bg-gray-100 hover:text-black hover:border-black transition duration-200 ease-in-out transform active:scale-95">
           Guardar
         </button>
       </form>
@@ -284,31 +289,39 @@ function Assignments() {
               key={asignacion.id}
               className="p-4 border rounded shadow-md flex justify-between items-start"
             >
-              <div>
+              <div className="">
                 <h3 className="font-bold">{asignacion.titulo}</h3>
                 <p>{asignacion.descripcion}</p>
 
                 {asignacion.archivo && (
                   <a
-                  href={`http://127.0.0.1:8000/download/${asignacion.id}/`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+                    href={`http://127.0.0.1:8000/download/${asignacion.id}/asignacion/`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
                   >
-                    {asignacion.archivo}
+                    {getFileIcon(asignacion.archivo)}
                   </a>
                 )}
                 <p className="text-gray-600">
                   Fecha Límite: {asignacion.fechaLimite}
                 </p>
-                
               </div>
-              <button
-                className="ml-4  text-red-500 hover:text-red-700 transition duration-200 ease-in-out transform active:scale-95"
-                onClick={() => handleDelete(asignacion.id)}
-              >
-                Eliminar
-              </button>
+
+              <div className="flex flex-col gap-3">
+                <button
+                  className="border border-gray-400 hover:border-red-700 hover:text-red-700 hover:-translate-y-1 px-4 py-2 font-semibold rounded-md justify-center transition duration-200 ease-in-out transform active:scale-95"
+                  onClick={() => handleDelete(asignacion.id)}
+                >
+                  Eliminar
+                </button>
+
+                <div className="border border-gray-400 hover:border-black hover:-translate-y-1 px-4 py-2 font-semibold rounded-md justify-center transition duration-200 ease-in-out transform active:scale-95">
+                  <Link to={`/asignaciones/${asignacion.id}/ver-entregas`}>
+                    Ver Entregas
+                  </Link>
+                </div>
+              </div>
             </li>
           ))
         )}

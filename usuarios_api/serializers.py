@@ -1,20 +1,64 @@
 from rest_framework import serializers
 from usuarios_api.models import UserProfile
-from .models import Materias, NivelEscolar, Asignacion
+from .models import Materias, NivelEscolar, Asignacion, RespuestaAsig, Nota, Entrega
 from django.contrib.auth import authenticate
 
+
+class NotaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Nota
+        fields = ['id', 'calificacion', 'comentarios', 'asignacion', 'entrega', 'fecha_asignacion']
+
+    def create(self, validated_data):
+        estudiante = validated_data.pop('estudiante')  
+        user_profile = self.context['request'].user.userprofile  
+
+        nota = Nota.objects.create(
+            user_profile=user_profile,
+            estudiante=estudiante,
+            **validated_data  
+        )
+        return nota
+
+
 class UserSerializer(serializers.ModelSerializer):
+    notas = NotaSerializer(many=True, read_only=True)
     class Meta:
         model = UserProfile
-        fields = ['id', 'username', 'email', 'password', 'is_student', 'is_teacher']
+        fields = ['id', 'username', 'email', 'password', 'phone', 'notas', 'avatar', 'is_student', 'is_teacher']
         extra_kwargs = {
-           'password': {'write_only': True}
-       }
+            'password': {'write_only': True},
+            'email': {'required': True},
+        }
+
+    def get_notas(self, obj):
+        notas = Nota.objects.filter(user_profile=obj)
+        serializer = NotaSerializer(notas, many=True)
+        return serializer.data
+    
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        user = UserProfile(**validated_data)
+        if password:
+            user.set_password(password)
+        user.save()
+        return user
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        if password:
+            instance.set_password(password)
+        instance.save()
+        return instance
+        
         
 class UserProfileImage(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ('avatar')
+        
         
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField(max_length=255)
@@ -82,3 +126,42 @@ class AsignacionSerializer(serializers.ModelSerializer):
         profesor = request.user
         asignacion = Asignacion.objects.create(profesor=profesor, **validated_data)
         return asignacion
+    
+    
+class RespuestaAsigSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RespuestaAsig
+        fields = '__all__'
+        
+        
+class UserSettingsSerializer(serializers.ModelSerializer):
+    avatar = serializers.ImageField(required=False)
+    class Meta:
+        model = UserProfile
+        fields = ['id', 'username', 'email', 'phone', 'avatar', 'password']
+        extra_kwargs = {
+            'password': {'write_only': True, 'required': False},
+            'email': {'required': True},
+        }
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        if password:
+            instance.set_password(password)
+        instance.save()
+        return instance
+    
+
+
+class EstudianteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['id', 'username', 'email', 'avatar']
+        
+        
+class EntregaSerializer(serializers.ModelSerializer):
+    class Meta:
+            model = Entrega
+            fields = ['id', 'asignacion', 'estudiante'] 

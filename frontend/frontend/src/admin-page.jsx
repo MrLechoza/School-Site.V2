@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Select from "react-select";
+import CrearUsuario from "./crear_usuario_admin";
 
 function AdminPage() {
   const [estudiante, setEstudiante] = useState([]);
@@ -34,7 +35,7 @@ function AdminPage() {
       })
       .catch((error) => console.error(error));
   }, []);
-
+  
   const asignarMateriasEstudiante = () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -201,7 +202,7 @@ function AdminPage() {
           />
 
           <button
-            className="mt-3 w-full bg-primary text-white py-2 rounded bg-[#020202] hover:bg-[#1b1b1b] transition duration-200 ease-in-out transform active:scale-95"
+            className="mt-3 w-full font-semibold  bg-primary text-white py-2 rounded bg-[#020202] hover:bg-[#1b1b1b] transition duration-200 ease-in-out transform active:scale-95"
             onClick={asignarMateriasEstudiante}
           >
             Asignar
@@ -226,7 +227,7 @@ function AdminPage() {
           />
 
           <button
-            className="mt-3 mb-10 w-full bg-primary text-white py-2 rounded bg-[#020202] hover:bg-[#1b1b1b] transition duration-200 ease-in-out transform active:scale-95"
+            className="mt-3 font-semibold  mb-10 w-full bg-primary text-white py-2 rounded bg-[#020202] hover:bg-[#1b1b1b] transition duration-200 ease-in-out transform active:scale-95"
             onClick={asignarMateriasProfesor}
           >
             Asignar
@@ -283,12 +284,15 @@ function AdminPage() {
           />
 
           <button
-            className="mt-3 w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition duration-200 ease-in-out transform active:scale-95"
+            className="mt-3 w-full font-semibold  bg-red-600 text-white py-2 rounded hover:bg-red-700 transition duration-200 ease-in-out transform active:scale-95"
             onClick={eliminarMateriasAsignadas}
           >
             Eliminar Materias Seleccionadas
           </button>
         </div>
+
+
+        <div> {<CrearUsuario />} </div>
       </div>
     </>
   );

@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const navigate = useNavigate();
 
   const images = [
     { id: 0, src: "Escuela.jpg" },
@@ -62,7 +64,7 @@ function Home() {
             viewBox="0 0 24 24"
             strokeWidth={1.5}
             stroke="currentColor"
-            className="size-6"
+            className="size-6 "
           >
             <path
               strokeLinecap="round"
@@ -145,26 +147,48 @@ function Home() {
         </p>
 
         <div className="grid place-content-center 2xl:grid-cols-4 xl:grid-cols-3 lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1 gap-8 ml-10">
-
           <div className="card bg-white w-[320px] h-[400px] shadow-xl rounded-xl">
             <figure>
-              <img src="estadistica.jpeg" className="rounded-xl w-full h-36 " />
+              <img
+                src="lengua.jpg"
+                className="rounded-tl-xl rounded-tr-xl w-full h-36"
+              />
             </figure>
             <div className="card-body items-center text-center">
-              <h2 className="card-title mt-5 capitalize">ESTADISTICA</h2>
-              <p className="m-5">La estadística es la ciencia que se encarga de recopilar, analizar e interpretar datos para extraer conclusiones y patrones. </p>
+              <h2 className="card-title mt-5 capitalize font-semibold">
+                Lengua
+              </h2>
+              <p className="m-5">
+                El estudio de la lengua y la literatura abarca el análisis de la
+                gramática, la ortografía, la comprensión lectora y la producción
+                de textos.
+              </p>
               <div className="card-actions flex justify-end mr-10">
-                <button className="btn btn-primary  ">
+                <button
+                  className="btn btn-primary"
+                  onClick={() => navigate("/materias_info")}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="size-9"
+                    width="32"
+                    height="32"
+                    color="#000000"
+                    fill="none"
                   >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    />
                     <path
-                      fillRule="evenodd"
-                      d="M16.72 7.72a.75.75 0 0 1 1.06 0l3.75 3.75a.75.75 0 0 1 0 1.06l-3.75 3.75a.75.75 0 1 1-1.06-1.06l2.47-2.47H3a.75.75 0 0 1 0-1.5h16.19l-2.47-2.47a.75.75 0 0 1 0-1.06Z"
-                      clipRule="evenodd"
+                      d="M16 12L8 12M16 12C16 12.7002 14.0057 14.0085 13.5 14.5M16 12C16 11.2998 14.0057 9.99153 13.5 9.5"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </svg>
                 </button>
@@ -174,23 +198,43 @@ function Home() {
 
           <div className="card bg-white w-[320px] h-[400px] shadow-xl rounded-xl">
             <figure>
-              <img src="ciencia.png" className="rounded-xl w-full h-36 " />
+              <img
+                src="ingles.jpeg"
+                className="rounded-tl-xl rounded-tr-xl w-full h-36 "
+              />
             </figure>
             <div className="card-body items-center text-center">
-              <h2 className="card-title mt-5 capitalize">CIENCIAS</h2>
-              <p className="m-5">La ciencia es el estudio sistemático de la naturaleza y el universo a través de la observación, experimentación y evidencia.</p>
+              <h2 className="card-title mt-5 font-semibold">Inglés</h2>
+              <p className="m-5">
+                El inglés es un idioma germánico hablado en muchos países del
+                mundo, especialmente en Estados Unidos
+              </p>
               <div className="card-actions flex justify-end mr-10">
-                <button className="btn btn-primary">
+                <button
+                  className="btn btn-primary"
+                  onClick={() => navigate("/materias_info")}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="size-9"
+                    width="32"
+                    height="32"
+                    color="#000000"
+                    fill="none"
                   >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    />
                     <path
-                      fillRule="evenodd"
-                      d="M16.72 7.72a.75.75 0 0 1 1.06 0l3.75 3.75a.75.75 0 0 1 0 1.06l-3.75 3.75a.75.75 0 1 1-1.06-1.06l2.47-2.47H3a.75.75 0 0 1 0-1.5h16.19l-2.47-2.47a.75.75 0 0 1 0-1.06Z"
-                      clipRule="evenodd"
+                      d="M16 12L8 12M16 12C16 12.7002 14.0057 14.0085 13.5 14.5M16 12C16 11.2998 14.0057 9.99153 13.5 9.5"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </svg>
                 </button>
@@ -200,49 +244,43 @@ function Home() {
 
           <div className="card bg-white w-[320px] h-[400px] shadow-xl rounded-xl">
             <figure>
-              <img src="ingles.jpeg" className="rounded-xl w-full h-36 " />
+              <img
+                src="informatica.jpg"
+                className="rounded-tl-xl rounded-tr-xl w-full h-36 "
+              />
             </figure>
             <div className="card-body items-center text-center">
-              <h2 className="card-title mt-5 ">INGLES</h2>
-              <p className="m-5">El inglés es un idioma germánico hablado en muchos países del mundo, especialmente en Estados Unidos</p>
-              <div className="card-actions flex justify-end mr-10">
-                <button className="btn btn-primary">
+              <h2 className="card-title mt-5 font-semibold">Informática</h2>
+              <p className="m-5">
+                El estudio de la tecnología de la información incluye el uso de
+                computadoras, software y herramientas digitales.
+              </p>
+              <div className="card-actions flex justify-end  mr-10">
+                <button
+                  className="btn btn-primary"
+                  onClick={() => navigate("/materias_info")}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="size-9"
+                    width="32"
+                    height="32"
+                    color="#000000"
+                    fill="none"
                   >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.72 7.72a.75.75 0 0 1 1.06 0l3.75 3.75a.75.75 0 0 1 0 1.06l-3.75 3.75a.75.75 0 1 1-1.06-1.06l2.47-2.47H3a.75.75 0 0 1 0-1.5h16.19l-2.47-2.47a.75.75 0 0 1 0-1.06Z"
-                      clipRule="evenodd"
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
                     />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="card bg-white w-[320px] h-[400px] shadow-xl rounded-xl">
-            <figure>
-              <img src="matematicas.png" className="rounded-xl w-full h-36 " />
-            </figure>
-            <div className="card-body items-center text-center">
-              <h2 className="card-title mt-5">MATEMATICAS</h2>
-              <p className="m-5">La matemática es la ciencia que se ocupa del estudio de números, cantidades, espacios y estructuras.</p>
-              <div className="card-actions flex justify-end mr-10">
-                <button className="btn btn-primary">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="size-9 "
-                  >
                     <path
-                      fillRule="evenodd"
-                      d="M16.72 7.72a.75.75 0 0 1 1.06 0l3.75 3.75a.75.75 0 0 1 0 1.06l-3.75 3.75a.75.75 0 1 1-1.06-1.06l2.47-2.47H3a.75.75 0 0 1 0-1.5h16.19l-2.47-2.47a.75.75 0 0 1 0-1.06Z"
-                      clipRule="evenodd"
+                      d="M16 12L8 12M16 12C16 12.7002 14.0057 14.0085 13.5 14.5M16 12C16 11.2998 14.0057 9.99153 13.5 9.5"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </svg>
                 </button>

@@ -14,6 +14,10 @@ import Nosotros from "./nosotros"
 import AdminPage from "./admin-page";
 import RegistroExitoso from './registro-exitoso'
 import TareasEs from "./tareas-estudiantes";
+import VerEntregas from "./ver-entregas";
+import ResponderAsignacion from "./respuesta-asignacion";
+import UserSettings from "./user-settings";
+import MateriasInfo from "./materias_info";
 
 
 
@@ -32,6 +36,7 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/registro-exitoso" element={<RegistroExitoso />} />
               <Route path="/register/message" element={<StudentRegistrationConfirmation />} />
+              <Route path="/materias_info"  element={<MateriasInfo />}/>
               <Route path="/register/message" element={<StudentRegistrationConfirmation />} />
               <Route path="/message" element={<StudentRegistrationConfirmation />}/>
               <Route path="/register/teacher-page" element={<HomePageTeacher />} />
@@ -41,10 +46,15 @@ function App() {
               <Route path="/register/teacher-page/register-student" element={<RegisterStudent />} />
               <Route path="/teacher-page/register-student" element={<RegisterStudent />} />
               <Route path="/asignment" element={<Assignments />} />
+              <Route path="/asignacionesEs/:id" element={<TareasEs />} />
+              <Route path="/asignacionesPr/:id" element={<Assignments />} />
               <Route path="/asignaciones/:materiaId" element={<TareasEs />} />
+              <Route path="/asignaciones/:id/responder" element={<ResponderAsignacion />} />
+              <Route path="/asignaciones/:id/ver-entregas" element={<VerEntregas />} />
               <Route path="/materias" element={<Assignments />} />
               <Route path="/ver_materias" element={<Materia />} />
               <Route path="/nosostros" element={<Nosotros />} />
+              <Route path="/settings" element={<UserSettings />} />
           </Routes>
         </Layout>
       </Router>
