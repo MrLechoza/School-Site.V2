@@ -32,7 +32,8 @@ const UserSettings = () => {
       .then((data) => {
         console.log("usuario actual", data);
         setUserData(data);
-        setAvatarPreview(data.avatar || null); // Muestra la vista previa si existe un avatar
+        console.log(userData.avatar);
+        setAvatarPreview(data.avatar || null);
         setIsLoading(false);
       })
       .catch((error) => {
@@ -52,12 +53,11 @@ const UserSettings = () => {
         }));
         setAvatarPreview(URL.createObjectURL(files[0]));
       } else {
-        // Si no se seleccionó un archivo, poner avatar como null
         setUserData((prevState) => ({
           ...prevState,
           avatar: null,
         }));
-        setAvatarPreview(null); // Elimina la vista previa
+        setAvatarPreview(null);
       }
     } else {
       setUserData((prevState) => ({
@@ -69,17 +69,16 @@ const UserSettings = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-  
+    console.log("userdata.avatar", userData.avatar);
     const token = localStorage.getItem("token");
     const formData = new FormData();
-  
-    // Asegúrate de agregar solo los datos que existen
+
     for (const key in userData) {
       if (userData[key] !== null && userData[key] !== "") {
         formData.append(key, userData[key]);
       }
     }
-  
+
     fetch("http://127.0.0.1:8000/settings/", {
       method: "PUT",
       headers: {
@@ -153,7 +152,7 @@ const UserSettings = () => {
           />
         </div>
 
-        <div className="">
+        <div>
           <label>Avatar:</label>
           <input
             type="file"
@@ -168,17 +167,18 @@ const UserSettings = () => {
               alt="Vista previa del avatar"
               className="mt-2 w-20 h-20 rounded-full object-cover"
             />
+          ) : userData.avatar ? (
+            <img
+              src={userData.avatar}
+              alt="Avatar actual"
+              className="mt-2 w-20 h-20 rounded-full object-cover"
+            />
           ) : (
-            userData.avatar && (
-              <img
-                src={userData.avatar}
-                alt="Avatar"
-                className="mt-2 w-20 h-20 rounded-full object-cover"
-              />
-            )
+            <div className="mt-2 w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center">
+              Sin avatar
+            </div>
           )}
         </div>
-
         <button
           className="flex my-3 pl-2 place-content-center w-full border rounded p-1 bg-black text-white hover:bg-gray-100 hover:text-black transition duration-200 ease-in-out transform active:scale-95"
           type="submit"

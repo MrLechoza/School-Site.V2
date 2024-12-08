@@ -12,10 +12,10 @@ function HomePageTeacher() {
 
   return (
     <>
-      <div className="absolute flex w-[1050px] h-auto shadow-md bg-[#ffffff]">
-        <div className=" p-5">
+      <div className="absolute flex w-[100%] h-auto shadow-md bg-[#ffffff]">
+        <div className="p-5">
           <h1 className="relative font-semibold text-black mb-3">Categorias</h1>
-          <div className=" flex gap-5">
+          <div className="flex flex-wrap justify-center items-center gap-5">
             <button
               className="flex border border-gray-400 hover:border-black hover:-translate-y-1  px-4 py-2 font-semibold rounded-md justify-center transition duration-200 ease-in-out transform active:scale-95"
               onClick={() =>
@@ -87,7 +87,7 @@ function HomePageTeacher() {
         </div>
       </div>
 
-      <div className="flex w-[1050px] h-auto shadow-md mt-36 bg-[#ffffff]">
+      <div className="flex w-[100%] h-auto shadow-md mt-36 bg-[#ffffff]">
         {vista.showRegisterStudent && <RegisterStudent />}
         {vista.showAsignaciones && <Assignments />}
         {vista.showMaterias && <Materia />}

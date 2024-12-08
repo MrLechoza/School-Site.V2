@@ -34,10 +34,10 @@ function Materia() {
   };
 
   return (
-    <div>
-      <div className="flex flex-wrap justify-center m-10">
+    <div  className="flex flex-col m-auto my-20">
+      <div className="flex flex-wrap justify-center">
         {materias.map((materia) => (
-          <div key={materia.id} className="border-2 border-gray-300 rounded-md w-52 h-52 m-2 p-4 flex flex-col items-center justify-center   ">
+          <div key={materia.id} className="border-2 border-gray-300 rounded-md w-52 h-52 m-2 p-4 flex flex-col items-center justify-center">
             
             <div className="rounded-full">
               <svg

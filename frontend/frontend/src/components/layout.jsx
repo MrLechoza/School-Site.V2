@@ -305,9 +305,9 @@ function Layout({ children }) {
         </div>
       </div>
 
-      <main className="flex-grow p-4">{children}</main>
+      <main className="flex-grow py-4">{children}</main>
 
-      <footer className="flex items-center justify-center bg-secondary bg-black text-white p-4 mt-auto">
+      <footer className="flex items-center justify-center bg-secondary bg-black text-white py-4 mt-auto">
         &copy; {new Date().getFullYear()} Nombre de la Escuela C.A
       </footer>
     </div>
